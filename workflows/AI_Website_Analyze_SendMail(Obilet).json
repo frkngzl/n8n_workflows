@@ -1,0 +1,347 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "ff195002-53f8-47c4-bde3-bd7f70d3af4b",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Aşağıdaki web sitesi içeriğini ve performans skorunu analiz et. Bu bilgilere göre bir SWOT analizi yapmanı istiyorum. Her başlık altında en az 2 madde olsun, 3 öneri ver. Ayrıca web tasarımcılarının anlayabileceği şekilde geliştirmek için görev listesi hazırla lütfen.\n\n🔹 HTML İçeriği:\n{{ $json[\"html_excerpt\"] }}\n\n🔹 PageSpeed Özeti:\n{{ $json[\"pagespeed_summary\"] }}\n\n📋 Format:\n\nGenel Açıklama:\n\nGüçlü Yönler:\n\nZayıf Yönler:\n\nFırsatlar:\n\nTehditler:\n\nİyileştirmeler:",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        860,
+        0
+      ],
+      "id": "bda3e7b9-0a90-4b4e-9f1c-2158756237e2",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-preview-04-17",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        940,
+        120
+      ],
+      "id": "1998b086-02aa-4ef4-8821-3cad2d7a898e",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "BcRsJYnGadqI5uV2",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://www.obilet.com/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        -100
+      ],
+      "id": "e2d0ebd5-7651-4126-97bd-ba064382fa5e",
+      "name": "html_excerpt",
+      "alwaysOutputData": true,
+      "retryOnFail": false,
+      "notesInFlow": true,
+      "notes": "Error"
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/pagespeedonline/v5/runPagespeed",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "url",
+              "value": "https://www.obilet.com/"
+            },
+            {
+              "name": "key",
+              "value": "YOUR_API_KEY"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        120
+      ],
+      "id": "f6f75b8b-82bb-4058-bdc1-f9a2449c980b",
+      "name": "pagespeed_summary",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        420,
+        20
+      ],
+      "id": "6459a265-81fc-40ad-ba49-e5bffba09499",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const html_excerpt = $json.data;\nconst layoutShift = $json.loadingExperience?.metrics?.CUMULATIVE_LAYOUT_SHIFT_SCORE?.distributions?.[0]?.proportion;\n\nreturn [{\n  html_excerpt: html_excerpt.slice(0, 3000), // Uzunsa kırp\n  pagespeed_summary: `Cumulative Layout Shift Score: ${layoutShift}`\n}]\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        620,
+        20
+      ],
+      "id": "cc87d2fb-1282-4fcc-8066-f9d2bc0f1104",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "fromEmail": "thatmyemailf@gmail.com",
+        "toEmail": "thatmyjobemailf@gmail.com",
+        "emailFormat": "text",
+        "text": "={{ $json.text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1300,
+        0
+      ],
+      "id": "c3577677-a7f1-456b-9c26-70ae91f799e1",
+      "name": "Send Email",
+      "webhookId": "5258274b-d6a8-440f-b901-4e1607660b35",
+      "credentials": {
+        "smtp": {
+          "id": "YqnrPsLkostsogop",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Site Analizi",
+        "height": 460,
+        "width": 180
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        180,
+        -160
+      ],
+      "typeVersion": 1,
+      "id": "ff0b90f0-0030-44e1-b6e1-1ea6c5d77db7",
+      "name": "Sticky Note",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "## Sonuçları Birleştir",
+        "height": 260,
+        "width": 180
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        380,
+        -80
+      ],
+      "typeVersion": 1,
+      "id": "3f9e73f7-5ec7-47bb-b107-09634fcfe573",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Code Node Veri Özetleme\n",
+        "height": 260,
+        "width": 200
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        580,
+        -80
+      ],
+      "typeVersion": 1,
+      "id": "9e4e52f2-7a54-4339-abc7-57359e9f7e24",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## AI Veri İnceleme + SWOT Analizi",
+        "height": 380,
+        "width": 380
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        800,
+        -120
+      ],
+      "typeVersion": 1,
+      "id": "7ff51980-00d5-4218-b5e7-3b2ae04c0fd6",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## Çıktıyı Mail yoluyla iletmek.",
+        "height": 260,
+        "width": 220
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1240,
+        -100
+      ],
+      "typeVersion": 1,
+      "id": "39eb1adc-41e4-4b0e-ae7c-82e9ef8fa7c2",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## Haftalık Tetiklenme",
+        "height": 200
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -80,
+        -60
+      ],
+      "typeVersion": 1,
+      "id": "e3020c6a-f652-4622-8caa-5224c681b253",
+      "name": "Sticky Note5"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "pagespeed_summary",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "html_excerpt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "html_excerpt": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "pagespeed_summary": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ca6f7b42-a896-4623-98d5-ca7f2fe2669a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e7c2bb22cd1bcdb8e9f929e44a00c103c5e79bce33406cec8a9dfc669fe7d380"
+  },
+  "id": "KYFsP7nU14u5tDGv",
+  "tags": []
+}
