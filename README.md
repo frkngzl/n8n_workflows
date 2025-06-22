@@ -1,3 +1,6 @@
+![image](https://github.com/user-attachments/assets/4fc3e72f-2acd-4123-b092-4a4fb7eba30e)
+
+
 Haftalık Otomatik Web Site SWOT Analizi (n8n Workflow)
 
 Bu n8n workflow, belirli bir web sitesinin HTML içeriğini ve Google PageSpeed performans skorunu analiz ederek haftalık olarak bir **SWOT analizi** oluşturur ve sonuçları e-posta ile gönderir.
